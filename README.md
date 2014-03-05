@@ -1,5 +1,7 @@
-Haro: A Library of SWT Components and Widgets
-=============================================
+Haro
+====
+A Library of SWT Components and Widgets
+---------------------------------------
 
 Hello,
 
@@ -11,9 +13,9 @@ Initially, I'm releasing FileExplorer, a component that makes adding a file expl
 
 ### Requirements
 
-* [Java Development Kit][http://www.oracle.com/technetwork/java/javase/downloads/index.html]
-* [Ant][http://ant.apache.org/]
-* [SWT][http://www.eclipse.org/swt/]
+* [Java Development Kit](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+* [Ant](http://ant.apache.org/)
+* [SWT](http://www.eclipse.org/swt/)
 
 ### Steps
 

@@ -1,0 +1,39 @@
+<project name="haro" basedir="." default="compile">
+
+	<property name="src.dir" value="src/main/java" />
+	<property name="version" value="0.1.1" />
+
+	<property name="build.dir" value="build" />
+	<property name="classes.dir" value="${build.dir}/classes" />
+	<property name="lib.dir" value="${build.dir}/lib" />
+	<property name="exportsrc.dir" value="${build.dir}/sources" />
+
+	<target name="clean">
+		<delete dir="${build.dir}" />
+	</target>
+
+	<target name="compile">
+		<mkdir dir="${classes.dir}" />
+		<javac srcdir="${src.dir}" destdir="${classes.dir}" source="1.6" target="1.6"/>
+	</target>
+
+	<target name="jar" depends="clean,compile">
+		<mkdir dir="${lib.dir}" />
+		<jar destfile="${lib.dir}/${ant.project.name}-${version}.jar" basedir="${classes.dir}"></jar>
+	</target>
+
+	<target name="dist" depends="jar">
+		<mkdir dir="${exportsrc.dir}"/>
+		<copy todir="${exportsrc.dir}">
+			<fileset dir=".">
+				<include name="build.xml"/>
+			</fileset>
+		</copy>
+		<mkdir dir="${exportsrc.dir}/src"/>
+		<copydir dest="${exportsrc.dir}/src" src="src"/>
+		<zip destfile="${lib.dir}/${ant.project.name}-${version}-src.zip" basedir="${exportsrc.dir}"></zip>
+	</target>
+
+	<target name="clean-build" depends="clean,jar" />
+
+</project>

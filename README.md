@@ -1,13 +1,13 @@
 Haro
 ====
-A Library of SWT Components and Widgets
+SWT Components and Widgets
 ---------------------------------------
 
 Hello,
 
 Haro is a library of custom SWT components and widgets I've built over the years. I should have done this a long time ago, frankly, but...
 
-Initially, I'm releasing FileExplorer, a component that makes adding a file explorer to your application trivial. As time permits I'll package my other odds-n-ends into the haro library.
+Initially, I'm releasing [FileExplorer](https://github.com/OttoHagg/haro/blob/master/src/main/java/net/bsuojanen/swt/widgets/filesystem/FileExplorer.java), a component that makes adding a file explorer to your application trivial. As time permits I'll package my other odds-n-ends into the haro library.
 
 ## Building
 

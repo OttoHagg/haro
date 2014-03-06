@@ -68,21 +68,17 @@ public final class SWTFileSystemView {
 	}
 	
 	/**
-	 * @return
+	 * @see javax.swing.filechooser.FileSystemView.getRoots()
 	 */
 	public final File[] getRoots() {
 		return view.getRoots();
 	}
 	
-	/**
-	 * @param file
-	 * @return
-	 */
 	public final File[] getDirectories(final File file) {
 		File[] files = view.getFiles(file, true);
 		File[] dirs = new File[files.length];
 		for (int i = 0; i < files.length; i++) {
-			if (files[i].isDirectory()) {
+			if (this.isDirectory(files[i])) {
 				dirs[i] = files[i];
 			} else {
 				dirs[i] = null;
@@ -161,6 +157,7 @@ public final class SWTFileSystemView {
 	}
 	
 	public final boolean isDirectory(final File file) {
+		// return file.isDirectory();
 		return view.isTraversable(file);
 	}
 	
@@ -209,6 +206,6 @@ public final class SWTFileSystemView {
 				imageData.setAlphas(0, y, bufferedImage.getWidth(), alphaBytes, 0);
 			}
 		}
-		return new Image(display, imageData);
+		return new Image(display, imageData); // We create it, we dispose it!!!
 	}
 }

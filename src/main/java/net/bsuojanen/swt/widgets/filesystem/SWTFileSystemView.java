@@ -79,7 +79,7 @@ public final class SWTFileSystemView {
 	 * @return
 	 */
 	public final File[] getDirectories(final File file) {
-		File[] files = view.getFiles(file, true); // Set to true to view hidden directories.
+		File[] files = view.getFiles(file, true);
 		File[] dirs = new File[files.length];
 		for (int i = 0; i < files.length; i++) {
 			if (files[i].isDirectory()) {
@@ -101,36 +101,28 @@ public final class SWTFileSystemView {
 	
 	public final Image getIcon(final Display display, final File file) {
 		Image icon = null;
-		if(view.isTraversable(file)) {
-			icon = this.getDirectoryIcon(display, file);
-		} else {
-			icon = this.getFileIcon(display, file);
-		}
-		return icon;
-	}
-	
-	private final Image getFileIcon(final Display display, final File file) {
-		// TODO This won't work for executables with icons associated with them.
-		String ext = this.getFileExtension(file.getAbsolutePath()).toLowerCase();
-		Image icon = (Image) this.fileIconCache.get(ext);
-		if(icon == null) {
-			javax.swing.Icon swingIcon = view.getSystemIcon(file);
-			java.awt.Image awtImage = iconToImage(swingIcon);
-			icon = this.convert(display, (BufferedImage) awtImage);
-			this.fileIconCache.put(ext, icon);
-		}
 		
+		if(this.isDirectory(file)) {
+			icon = (Image) this.directoryIconCache.get(file);
+			if(icon == null) {
+				icon = this.getNewIcon(display, file);
+				this.directoryIconCache.put(file, icon);
+			}
+		} else {
+			String ext = this.getFileExtension(file.getAbsolutePath()).toLowerCase();
+			icon = (Image) this.fileIconCache.get(ext);
+			if(icon == null) {
+				icon = this.getNewIcon(display, file);
+				this.fileIconCache.put(ext, icon);
+			}
+		}
 		return icon;
 	}
 	
-	private final Image getDirectoryIcon(final Display display, final File file) {
-		Image icon = (Image) this.directoryIconCache.get(file);
-		if(icon == null) {
-			javax.swing.Icon swingIcon = view.getSystemIcon(file);
-			java.awt.Image awtImage = iconToImage(swingIcon);
-			icon = this.convert(display, (BufferedImage) awtImage);
-			this.directoryIconCache.put(file, icon);
-		}
+	private final Image getNewIcon(final Display display, final File file) {
+		javax.swing.Icon swingIcon = view.getSystemIcon(file);
+		java.awt.Image awtImage = iconToImage(swingIcon);
+		Image icon = this.convert(display, (BufferedImage) awtImage);
 		return icon;
 	}
 	

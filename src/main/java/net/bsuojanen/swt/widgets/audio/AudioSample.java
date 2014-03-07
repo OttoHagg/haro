@@ -10,19 +10,25 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 public class AudioSample {
-	private static final int NUM_BITS_PER_BYTE = 8;
 
 	private AudioInputStream audioInputStream;
 	private int[][] samplesContainer;
+	private int numberOfChannels; // mono versus stereo
+	private int bitsPerSample; // 8 versus 16 (common) versus 24 (also common)
 
 	// cached values
 	protected int sampleMax = 0;
 	protected int sampleMin = 0;
 	protected double biggestSample;
 	
-	public AudioSample(File file) throws Exception {
+	public AudioSample(final File file) throws Exception {
 		try {
 			this.audioInputStream = AudioSystem.getAudioInputStream(new BufferedInputStream(new FileInputStream(file)));
+			this.bitsPerSample = audioInputStream.getFormat().getSampleSizeInBits();
+			if(this.bitsPerSample != 16) {
+				throw new UnsupportedAudioFileException("Only audio sampled at 16 bits is currently supported.");
+			}
+			this.numberOfChannels = this.audioInputStream.getFormat().getChannels();
 			this.createSampleArrayCollection();
 		} catch (UnsupportedAudioFileException | IOException e) {
 			throw(e);
@@ -30,10 +36,11 @@ public class AudioSample {
 	}
 
 	public final int getNumberOfChannels() {
-		int numBytesPerSample = audioInputStream.getFormat()
-				.getSampleSizeInBits()
-				/ NUM_BITS_PER_BYTE;
-		return audioInputStream.getFormat().getFrameSize() / numBytesPerSample;
+		return this.numberOfChannels;
+	}
+	
+	public final int getBitsPerSample() {
+		return this.bitsPerSample;
 	}
 
 	private final void createSampleArrayCollection() {
@@ -62,25 +69,28 @@ public class AudioSample {
 		}
 	}
 
+	/**
+	 * The assumption is every two 8-bit bytes form a 16-bit sample, and that there is one sample for each of the channels.
+	 * FIXME - Handle various sample rates, not just 16 bits per sample.
+	 * 
+	 * @param eightBitByteArray
+	 * @return
+	 */
 	protected final int[][] getSampleArray(byte[] eightBitByteArray) {
 		
-		int[][] toReturn = new int[getNumberOfChannels()][eightBitByteArray.length / (2 * getNumberOfChannels())];
+		int[][] toReturn = new int[this.numberOfChannels][ eightBitByteArray.length / ( 2 * this.numberOfChannels ) ];
 		
 		int index = 0;
 		int numChannels = this.getNumberOfChannels();
 
-		// loop through the byte[]
+		// Loop through the byte array
 		for (int t = 0; t < eightBitByteArray.length;) {
-			// for each iteration, loop through the channels
+			// For each iteration, loop through the channels
 			for (int a = 0; a < numChannels; a++) {
 				
 					int low = (int) eightBitByteArray[t];
 					t++;
-					/*
-					 * The assumption is every two 8-bit bytes form a 16-bit sample, and that there is one sample for each of the channels.
-					 */
-					int high = (int) eightBitByteArray[t]; // FIXME - Anything (typically mono) sampled at 8 bit barfs here.
-					// java.lang.ArrayIndexOutOfBoundsException
+					int high = (int) eightBitByteArray[t];
 					t++;
 					int sample = (high << 8) + (low & 0x00ff);
 

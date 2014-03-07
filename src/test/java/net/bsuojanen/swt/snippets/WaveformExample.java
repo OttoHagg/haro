@@ -2,6 +2,8 @@ package net.bsuojanen.swt.snippets;
 
 import java.io.File;
 
+import javax.sound.sampled.UnsupportedAudioFileException;
+
 import net.bsuojanen.swt.widgets.audio.AudioSample;
 import net.bsuojanen.swt.widgets.audio.WaveformComposite;
 
@@ -66,7 +68,11 @@ public class WaveformExample {
 					try {
 						AudioSample sample = new AudioSample(file);
 						waveform.setSample(sample);						
-					} catch (Exception e) {
+					} catch (UnsupportedAudioFileException e) {
+						// AudioSample currently supports audio sampled at 16 bits. Lofi stuff, at 8 bits,
+						// shows up. But 24 is ubiquitous these days.
+						System.out.println(e.getMessage()); 
+					} catch(Exception e) {
 						e.printStackTrace();
 					}
 				}

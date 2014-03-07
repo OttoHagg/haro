@@ -5,7 +5,12 @@ Hello,
 
 Haro is a library of custom SWT components and widgets I've built over the years. I should have done this a long time ago, frankly, but...
 
-Initially, I'm releasing [FileExplorer](https://github.com/OttoHagg/haro/wiki/FileExplorer), a component that makes adding a file explorer to your application trivial. As time permits I'll package my other odds-n-ends into the haro library.
+## What's in Haro?
+
+As time permits I'll package my other odds-n-ends into the haro library but, for now, there's:
+
+* [FileExplorer](https://github.com/OttoHagg/haro/wiki/FileExplorer), a component that makes adding a file explorer to your application trivial.
+* [Waveform](https://github.com/OttoHagg/haro/wiki/Waveform), a widget for displaying the waveform of an audio file.
 
 ## Building
 

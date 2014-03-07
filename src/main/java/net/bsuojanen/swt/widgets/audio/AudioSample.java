@@ -73,12 +73,13 @@ public class AudioSample {
 		for (int t = 0; t < eightBitByteArray.length;) {
 			// for each iteration, loop through the channels
 			for (int a = 0; a < numChannels; a++) {
-				// do the byte to sample conversion
-				// see AmplitudeEditor for more info
 				
 					int low = (int) eightBitByteArray[t];
 					t++;
-					int high = (int) eightBitByteArray[t]; // FIXME - Mono files sampled at 8 bit barf here.
+					/*
+					 * The assumption is every two 8-bit bytes form a 16-bit sample, and that there is one sample for each of the channels.
+					 */
+					int high = (int) eightBitByteArray[t]; // FIXME - Anything (typically mono) sampled at 8 bit barfs here.
 					// java.lang.ArrayIndexOutOfBoundsException
 					t++;
 					int sample = (high << 8) + (low & 0x00ff);
@@ -89,7 +90,6 @@ public class AudioSample {
 						sampleMax = sample;
 					}
 					
-					// set the value.
 					toReturn[a][index] = sample;
 			}
 			index++;

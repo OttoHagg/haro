@@ -64,14 +64,19 @@ public class WaveformExample {
 				
 				if (filename != null) {
 					File file = new File(filename);
-					shell.setText(title + " - " + file.getName());
+					shell.setText(title); // reset the title
+					waveform.reset(); // reset the wave form
 					try {
 						AudioSample sample = new AudioSample(file);
-						waveform.setSample(sample);						
+						waveform.setSample(sample);
+						// TODO - Handle files that take a long time to process (busy indicator).
+						// Or, better yet, spawn a background thread to process.
+						shell.setText(title + " - " + file.getName()); // update the title
 					} catch (UnsupportedAudioFileException e) {
 						// AudioSample currently supports audio sampled at 16 bits. Lofi stuff, at 8 bits,
-						// shows up. But 24 is ubiquitous these days.
+						// shows up. But 24 is ubiquitous these days, too.
 						System.out.println(e.getMessage()); 
+						shell.setText(title + " - Error opening " + file.getName());
 					} catch(Exception e) {
 						e.printStackTrace();
 					}

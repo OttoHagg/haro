@@ -20,7 +20,10 @@ public class WaveformComposite extends Composite {
 	}
 	
 	public void setSample(AudioSample sample) {
-		this.reset();
+		if( (this.sample != null) && (this.channelList != null) ) {
+			this.reset();
+		}
+		
 		this.sample = sample;
 		this.channelList = new ArrayList<ChannelCanvas>();
 		int numChannels = this.sample.getNumberOfChannels();

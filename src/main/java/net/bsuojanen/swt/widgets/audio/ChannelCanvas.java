@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2014 Brian T. Suojanen. All rights reserved.
+ * 
+ * This program and the accompanying materials are made available under the terms
+ * of the Eclipse Public License v1.0 which is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ * Brian T. Suojanen (brian dot suojanen at outlook dot com)
+ *******************************************************************************/
 package net.bsuojanen.swt.widgets.audio;
 
 import org.eclipse.swt.SWT;

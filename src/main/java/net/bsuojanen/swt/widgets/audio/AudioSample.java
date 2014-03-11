@@ -43,16 +43,26 @@ public class AudioSample {
 
 			// Support only mono and stereo audio files.
 			if (this.getNumberOfChannels() > 2) {
-				out(null);
 				throw new UnsupportedAudioFileException(
 						"Only mono or stereo audio is currently supported.");
 			}
 
-			// Support only audio sampled at 8 or 16 bits.
+			// No 24-bit support (yet).
 			if (this.getBitsPerSample() > 16) {
-				out(null);
 				throw new UnsupportedAudioFileException(
-						"Only audio sampled at 8 or 16 bits is currently supported.");
+						"Audio recorded higher than 16 bits per sample is not currently supported.");
+			}
+			
+			if(this.getBitsPerSample() == 8) {
+				if(this.getEncoding().equals("ALAW")) {
+					throw new UnsupportedAudioFileException(
+							"A-law enconding is not currently supported.");
+				}
+				
+				if(this.getEncoding().equals("ULAW")) {
+					throw new UnsupportedAudioFileException(
+							"U-law enconding is not currently supported.");
+				}
 			}
 
 			this.createSampleArrayCollection();
@@ -74,12 +84,28 @@ public class AudioSample {
 	}
 	
 	/**
-	 * Frames per second. For example, CD quality audio has a framerate of 44100.0.
+	 * Frames per second. For example, CD quality audio has a frame rate of 44100.0.
 	 * 
 	 * @return
 	 */
 	public final float getFramerate() {
 		return format.getFrameRate();
+	}
+	
+	/**
+	 * CD quality audio has a sample rate of 44100.0.
+	 * 
+	 * @return
+	 */
+	public final float getSampleRate() {
+		return this.format.getSampleRate();
+	}
+	
+	/**
+	 * @return
+	 */
+	public final boolean isBigEndian() {
+		return this.format.isBigEndian();
 	}
 	
 	/**
@@ -124,6 +150,15 @@ public class AudioSample {
 		return this.format.getFrameSize();
 	}
 	
+	/**
+	 * Java Sound supports ALAW, ULAW, PCM_FLOAT, PCM_SIGNED, and PCM_UNSIGNED.
+	 *  
+	 * @return
+	 */
+	public final String getEncoding() {
+		return this.format.getEncoding().toString();
+	}
+	
 	
 	/**
 	 * Return the samples for a given channel. Because some audio is mono it is
@@ -157,7 +192,7 @@ public class AudioSample {
 				this.samplesContainer = this.get16BitSampleArray(bytes);
 			}
 			
-			// find biggest sample. used for interpolating the yScaleFactor
+			// Find biggest sample. Useful for interpolating the yScaleFactor (ex. drawing a waveform).
 			if (this.sampleMax > this.sampleMin) {
 				this.biggestSample = this.sampleMax;
 			} else {
@@ -173,9 +208,8 @@ public class AudioSample {
 	}
 
 	/**
-	 * For an 8-bit sample, every two nibbles (4 bits) form a sample, and there is one sample for each channel. These
-	 * are usually mono and, therefore, the frame size is 1 byte. So, to support 8 bit, we have to split each byte
-	 * in half to get the low and high sample bits.
+	 * This is for linear (PCM_UNSIGNED) 8-bit audio. The result is "loud" so it
+	 * probably needs some kind of normalization.
 	 * 
 	 * @param eightBitByteArray
 	 * @return
@@ -201,17 +235,11 @@ public class AudioSample {
 			// For each iteration, loop through the channels
 			for (int a = 0; a < this.getNumberOfChannels(); a++) {
 				
-				int tmp = (int) eightBitByteArray[t];
-				int lowNibble = tmp & 0x0f; // lowest 4 bits
-				int highNibble = (tmp >> 4) & 0x0f; // highest 4 bits
+				float eightBitSample = (float) eightBitByteArray[t];
 				
-				/**
-				 * Okay, I just figured out that a lot of 8-bit audio was/is encoded u-law (mu-law)
-				 * or A-law, and is not linear like 16-bit audio. So the following is wrong.
-				 * 
-				 * See: http://www.hydrogenaudio.org/forums//lofiversion/index.php/t33608.html
-				 */
-				int sample = (highNibble << 4) + (lowNibble & 0x00ff);
+				float sixteenBitSample = ((eightBitSample / 256.0f) * 65536.0f); // unsigned 8-bit linear to signed 16-bit linear
+				
+				int sample = (int) sixteenBitSample;
 				
 				t++;
 
@@ -258,7 +286,7 @@ public class AudioSample {
 					int high = (int) eightBitByteArray[t];
 					t++;
 					
-					int sample = (high << 8) + (low & 0x00ff);
+					int sample = (int) ((high<<8) | (low & 0xFF)); // (high << 8) + (low & 0x00ff);
 
 					if (sample < this.sampleMin) {
 						this.sampleMin = sample;

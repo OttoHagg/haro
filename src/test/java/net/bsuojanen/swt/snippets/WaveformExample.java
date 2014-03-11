@@ -106,11 +106,14 @@ public class WaveformExample {
 	}
 	
 	private static final void dumpSample(AudioSample sample) {
-		out("Bits per sample: " + sample.getBitsPerSample());
+		out("Encoding: " + sample.getEncoding());
+		out("Sample size in bits: " + sample.getBitsPerSample());
 		out("Number of channels: " + sample.getNumberOfChannels());
+		out("Sample rate: " + sample.getSampleRate());
 		out("Framerate: " + sample.getFramerate());
 		out("Framesize: " + sample.getFrameSize() + " byte(s)");
 		out("Number of frames: " + sample.getNumberOfFrames() + " frames");
+		out("Is big endian: " + sample.isBigEndian());
 	}
 	
 	private static final void out(final String message) {

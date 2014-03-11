@@ -57,7 +57,8 @@ public class ChannelCanvas extends Canvas {
 		int oldY = (int) (canvasHeight / 2);
 		int xIndex = 0;
 
-		int increment = sample.getIncrement(sample.getXScaleFactor( canvasWidth ));
+		// TODO - Understand why increment is low for 8-bit audio.
+		int increment = this.getIncrement(this.getXScaleFactor( canvasWidth ));
 		e.gc.setForeground(e.display.getSystemColor(WAVEFORM_COLOR));
 
 		int t = 0;
@@ -69,7 +70,10 @@ public class ChannelCanvas extends Canvas {
 		}
 
 		for (; t < samples.length; t += increment) {
-			double scaleFactor = sample.getYScaleFactor(canvasHeight);
+			// TODO - Understand why scaleFactor is so large for 8-bit samples
+			// TODO - We can probably cache scaleFactor for performance improvement.
+			double scaleFactor = this.getYScaleFactor(canvasHeight);
+			//out("scaleFactor: " + scaleFactor);
 			double scaledSample = samples[t] * scaleFactor;
 			int y = (int) ((canvasHeight / 2) - (scaledSample));
 			e.gc.drawLine(oldX, oldY, xIndex, y);
@@ -78,5 +82,24 @@ public class ChannelCanvas extends Canvas {
 			oldX = xIndex;
 			oldY = y;
 		}
+	}
+	
+	public final double getXScaleFactor(int panelWidth) {
+		return (panelWidth / ((double) this.sample.getAudio(0).length));
+	}
+	
+	public final double getYScaleFactor(int panelHeight) {
+		
+		return (panelHeight / (this.sample.getBiggestSample() * 2 * 1.2));
+	}
+	
+	public final int getIncrement(double xScale) {
+		try {
+			int increment = (int) (this.sample.getAudio(0).length / (this.sample.getAudio(0).length * xScale));
+			return increment;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return -1;
 	}
 }

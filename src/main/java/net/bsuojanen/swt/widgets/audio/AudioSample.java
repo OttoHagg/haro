@@ -22,91 +22,118 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 
 public class AudioSample {
 
-	private static final boolean DEBUG = true;
+	private static final boolean VERBOSE = true;
 	
 	private AudioInputStream audioInputStream;
-	private int[][] samplesContainer;
-	private int numberOfChannels; // mono versus stereo
-	private int bitsPerSample; // 8 versus 16 (common) versus 24 (also common)
-	private int frameSize;
-	private long numberOfFrames; // i.e. frame length
-	private float framerate;
+	private AudioFormat format;
 	
-	protected int sampleMax = 0;
-	protected int sampleMin = 0;
-	protected double biggestSample;
+	private int[][] samplesContainer;
+	
+	private int sampleMax = 0;
+	private int sampleMin = 0;
+	private double biggestSample;
 	
 	public AudioSample(final File file) throws Exception {
 		try {
-			
-			this.openFile(file);
-			
-			AudioFormat format = this.audioInputStream.getFormat();
 
-			this.bitsPerSample = format.getSampleSizeInBits();
-			out("Bits per sample: " + this.bitsPerSample);
-			
-			this.numberOfChannels = format.getChannels();
-			out("Number of channels: " + this.numberOfChannels);
-			
-			this.framerate = format.getFrameRate();
-			out("Framerate: " + this.framerate);
+			this.audioInputStream = AudioSystem
+					.getAudioInputStream(new BufferedInputStream(
+							new FileInputStream(file)));
+			this.format = this.audioInputStream.getFormat();
 
-			this.frameSize = format.getFrameSize();
-			out("Framesize: " + this.frameSize + " byte(s)");
-			
-			this.numberOfFrames = this.audioInputStream.getFrameLength();
-			out("Number of frames: " + this.numberOfFrames + " frames");
-			
 			// Support only mono and stereo audio files.
-			if(this.getNumberOfChannels() > 2) {
+			if (this.getNumberOfChannels() > 2) {
 				out(null);
-				throw new UnsupportedAudioFileException("Only mono or stereo audio is currently supported.");
+				throw new UnsupportedAudioFileException(
+						"Only mono or stereo audio is currently supported.");
 			}
-			
+
 			// Support only audio sampled at 8 or 16 bits.
-			if(this.getBitsPerSample() > 16) {
+			if (this.getBitsPerSample() > 16) {
 				out(null);
-				throw new UnsupportedAudioFileException("Only audio sampled at 8 or 16 bits is currently supported.");
+				throw new UnsupportedAudioFileException(
+						"Only audio sampled at 8 or 16 bits is currently supported.");
 			}
-			
+
 			this.createSampleArrayCollection();
-			
-			out(null);
+
 		} catch (UnsupportedAudioFileException e) {
-			throw(e);
-		} catch(IOException e) {
-			throw(e);
+			throw (e);
+		} catch (IOException e) {
+			throw (e);
 		}
 	}
 	
-	private final void openFile(final File file) throws UnsupportedAudioFileException, IOException {
-		out("Opening: " +file.getAbsolutePath());
-		out("Size: " + file.length());
-		try {
-			this.audioInputStream = AudioSystem.getAudioInputStream(new BufferedInputStream(new FileInputStream(file)));
-		} catch (UnsupportedAudioFileException e) {
-			throw(e);
-		} catch(IOException e) {
-			throw(e);
-		}
-		
+	/**
+	 * i.e. "frame length". 
+	 * 
+	 * @return
+	 */
+	public final long getNumberOfFrames() {
+		return this.audioInputStream.getFrameLength();
+	}
+	
+	/**
+	 * Frames per second. For example, CD quality audio has a framerate of 44100.0.
+	 * 
+	 * @return
+	 */
+	public final float getFramerate() {
+		return format.getFrameRate();
+	}
+	
+	/**
+	 * The biggest sample. Useful for drawing.
+	 * 
+	 * @return
+	 */
+	public final double getBiggestSample() {
+		return this.biggestSample;
 	}
 
+	/**
+	 * Mono (1) or stereo (2).
+	 * 
+	 * @return
+	 */
 	public final int getNumberOfChannels() {
-		return this.numberOfChannels;
+		return this.format.getChannels();
 	}
 	
+	/**
+	 * The number of bits representing a "sample".
+	 * 
+	 * Currently, only 16 bit audio is well supported but 8 and 24 should be supported.
+	 * 
+	 * @return
+	 */
 	public final int getBitsPerSample() {
-		return this.bitsPerSample;
+		return this.format.getSampleSizeInBits();
 	}
 
+	/**
+	 * The number of bytes in a frame.
+	 * 
+	 * For example, 8-bit mono audio has a framesize of 1 byte. Conversely, 16-bit 
+	 * stereo audio has a framesize of 4 because there are two channels (right and left)
+	 * and each channel is expressed by 2 bytes.
+	 * 
+	 * @return
+	 */
 	public int getFrameSize() {
-		return this.frameSize;
+		return this.format.getFrameSize();
 	}
-
-	public long getFrameLength() {
-		return this.numberOfFrames;
+	
+	
+	/**
+	 * Return the samples for a given channel. Because some audio is mono it is
+	 * safe to always pass 0 (zero) as the argument.
+	 * 
+	 * @param channel
+	 * @return
+	 */
+	public final int[] getAudio(int channel) {
+		return this.samplesContainer[channel];
 	}
 
 	private final void createSampleArrayCollection() {
@@ -114,13 +141,12 @@ public class AudioSample {
 			this.audioInputStream.mark(Integer.MAX_VALUE);
 			this.audioInputStream.reset();
 			
-			int bufferSize = ( (int) this.numberOfFrames ) * this.frameSize;
+			int bufferSize = ( (int) this.getNumberOfFrames() ) * this.getFrameSize();
 			
 			byte[] bytes = new byte[bufferSize];
 			
-			int n = 0;
 			try {
-				n = this.audioInputStream.read(bytes);
+				this.audioInputStream.read(bytes);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -137,6 +163,10 @@ public class AudioSample {
 			} else {
 				this.biggestSample = Math.abs(((double) this.sampleMin));
 			}
+			
+			out("sampleMin: " + this.sampleMin);
+			out("sampleMax: " + this.sampleMax);
+			out("this.biggestSample: " + this.biggestSample);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -150,7 +180,7 @@ public class AudioSample {
 	 * @param eightBitByteArray
 	 * @return
 	 */
-	protected final int[][] get8BitSampleArray(byte[] eightBitByteArray) {
+	private final int[][] get8BitSampleArray(byte[] eightBitByteArray) {
 
 		int chan = this.getNumberOfChannels();
 
@@ -169,13 +199,21 @@ public class AudioSample {
 		// Loop through the byte array
 		for (int t = 0; t < eightBitByteArray.length;) {
 			// For each iteration, loop through the channels
-			for (int a = 0; a < this.numberOfChannels; a++) {
-
-				int lowNibble = (int) eightBitByteArray[t] & 0x0f; // lowest 4 bits
-				int highNibble = ((int) eightBitByteArray[t] >> 4) & 0x0f; // highest 4 bits
+			for (int a = 0; a < this.getNumberOfChannels(); a++) {
+				
+				int tmp = (int) eightBitByteArray[t];
+				int lowNibble = tmp & 0x0f; // lowest 4 bits
+				int highNibble = (tmp >> 4) & 0x0f; // highest 4 bits
+				
+				/**
+				 * Okay, I just figured out that a lot of 8-bit audio was/is encoded u-law (mu-law)
+				 * or A-law, and is not linear like 16-bit audio. So the following is wrong.
+				 * 
+				 * See: http://www.hydrogenaudio.org/forums//lofiversion/index.php/t33608.html
+				 */
+				int sample = (highNibble << 4) + (lowNibble & 0x00ff);
+				
 				t++;
-
-				int sample = (highNibble << 4) + (lowNibble & 0x0f);
 
 				if (sample < this.sampleMin) {
 					this.sampleMin = sample;
@@ -192,15 +230,16 @@ public class AudioSample {
 	}
 	
 	/**
-	 * The assumption is every two 8-bit bytes form a 16-bit sample, and there is one sample for each of the channels.
-	 * A stereo sample, therefore, has a frame size of 4 (bytes).
+	 * The assumption is 16-bit audio is linear. Every two 8-bit bytes form a 16-bit sample, and
+	 * there is one sample for each of the channels. A stereo sample, therefore, has a frame size
+	 * of 4 (bytes).
 	 * 
 	 * @param eightBitByteArray
 	 * @return
 	 */
-	protected final int[][] get16BitSampleArray(byte[] eightBitByteArray) {
+	private final int[][] get16BitSampleArray(byte[] eightBitByteArray) {
 		
-		int chan = this.numberOfChannels;
+		int chan = this.getNumberOfChannels();
 		
 		int len = eightBitByteArray.length / ( 2 * chan );
 		
@@ -211,8 +250,8 @@ public class AudioSample {
 		// Loop through the byte array
 		for (int t = 0; t < eightBitByteArray.length;) {
 			// For each iteration, loop through the channels
-			for (int a = 0; a < this.numberOfChannels; a++) {
-				
+			for (int a = 0; a < this.getNumberOfChannels(); a++) {
+
 					int low = (int) eightBitByteArray[t];
 					t++;
 					
@@ -234,35 +273,13 @@ public class AudioSample {
 
 		return toReturn;
 	}
-
-	public final double getXScaleFactor(int panelWidth) {
-		return (panelWidth / ((double) this.samplesContainer[0].length));
-	}
-
-	public final double getYScaleFactor(int panelHeight) {
-		return (panelHeight / (this.biggestSample * 2 * 1.2));
-	}
-
-	public final int[] getAudio(int channel) {
-		return this.samplesContainer[channel];
-	}
-
-	public final int getIncrement(double xScale) {
-		try {
-			int increment = (int) (this.samplesContainer[0].length / (this.samplesContainer[0].length * xScale));
-			return increment;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return -1;
-	}
-
+	
 	private static final void out(final String message) {
-		if(DEBUG) {
+		if(VERBOSE) {
 			if(message == null) {
 				out("----------------------------------------");
 			} else {
-				System.out.println("TRACE >> " + message);
+				System.out.println("TRACE >> AudioSample >> " + message);
 			}
 			
 		}

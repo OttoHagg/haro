@@ -29,7 +29,8 @@ import org.eclipse.swt.widgets.Shell;
 
 public class WaveformExample {
 	
-
+	private static final boolean VERBOSE = true;
+	
 	private WaveformComposite waveform;
 	private Shell shell;
 	private final static String title = "Waveform Example";
@@ -74,10 +75,16 @@ public class WaveformExample {
 				
 				if (filename != null) {
 					File file = new File(filename);
+					
+					out(null);
+					out("Opening file: " +file.getAbsolutePath());
+					out("File size (bytes): " + file.length());
+					
 					shell.setText(title); // reset the title
 					waveform.reset(); // reset the wave form
 					try {
 						AudioSample sample = new AudioSample(file);
+						dumpSample(sample);
 						waveform.setSample(sample);
 						// TODO - Handle files that take a long time to process (busy indicator).
 						// Or, better yet, spawn a background thread to process.
@@ -96,6 +103,25 @@ public class WaveformExample {
 
 	public static void main(String[] args) {
 		new WaveformExample();
+	}
+	
+	private static final void dumpSample(AudioSample sample) {
+		out("Bits per sample: " + sample.getBitsPerSample());
+		out("Number of channels: " + sample.getNumberOfChannels());
+		out("Framerate: " + sample.getFramerate());
+		out("Framesize: " + sample.getFrameSize() + " byte(s)");
+		out("Number of frames: " + sample.getNumberOfFrames() + " frames");
+	}
+	
+	private static final void out(final String message) {
+		if(VERBOSE) {
+			if(message == null) {
+				out("----------------------------------------");
+			} else {
+				System.out.println("TRACE >> WaveformExample >> " + message);
+			}
+			
+		}
 	}
 
 }

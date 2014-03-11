@@ -35,10 +35,11 @@ public class WaveformComposite extends Composite {
 		}
 		
 		this.sample = sample;
+		
 		this.channelList = new ArrayList<ChannelCanvas>();
 		int numChannels = this.sample.getNumberOfChannels();
-		for (int t = 0; t < numChannels; t++) {
-			ChannelCanvas channel = new ChannelCanvas(this, SWT.NONE, this.sample, t);
+		for (int channelNum = 0; channelNum < numChannels; channelNum++) {
+			ChannelCanvas channel = new ChannelCanvas(this, SWT.NONE, this.sample, channelNum);
 			this.channelList.add(channel);
 			this.layout(true);
 		}

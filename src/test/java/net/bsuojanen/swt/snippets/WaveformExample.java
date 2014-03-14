@@ -114,6 +114,8 @@ public class WaveformExample {
 		out("Framesize: " + sample.getFrameSize() + " byte(s)");
 		out("Number of frames: " + sample.getNumberOfFrames() + " frames");
 		out("Is big endian: " + sample.isBigEndian());
+		out("Biggest Sample: " + sample.getBiggestSample());
+		out("Duration: " + sample.getDuration() + " seconds");
 	}
 	
 	private static final void out(final String message) {

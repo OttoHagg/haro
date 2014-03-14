@@ -21,8 +21,6 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 public class AudioSample {
-
-	private static final boolean VERBOSE = true;
 	
 	private AudioInputStream audioInputStream;
 	private AudioFormat format;
@@ -47,10 +45,10 @@ public class AudioSample {
 						"Only mono or stereo audio is currently supported.");
 			}
 
-			// No 24-bit support (yet).
-			if (this.getBitsPerSample() > 16) {
+			// We support 8-bit (PCM), 16-bit, and 24-bit audio.
+			if (this.getBitsPerSample() > 24) {
 				throw new UnsupportedAudioFileException(
-						"Audio recorded higher than 16 bits per sample is not currently supported.");
+						"Audio recorded higher than 24 bits per sample is not currently supported.");
 			}
 			
 			if(this.getBitsPerSample() == 8) {
@@ -72,6 +70,10 @@ public class AudioSample {
 		} catch (IOException e) {
 			throw (e);
 		}
+	}
+	
+	public final float getDuration() {
+		return ( (float) this.getNumberOfFrames() / this.getFramerate() );
 	}
 	
 	/**
@@ -188,6 +190,8 @@ public class AudioSample {
 			
 			if(this.getBitsPerSample() == 8) {
 				this.samplesContainer = this.get8BitSampleArray(bytes);
+			} else if(this.getBitsPerSample() == 24) {
+				this.samplesContainer = this.get24BitSampleArray(bytes);
 			} else {
 				this.samplesContainer = this.get16BitSampleArray(bytes);
 			}
@@ -199,9 +203,6 @@ public class AudioSample {
 				this.biggestSample = Math.abs(((double) this.sampleMin));
 			}
 			
-			out("sampleMin: " + this.sampleMin);
-			out("sampleMax: " + this.sampleMax);
-			out("this.biggestSample: " + this.biggestSample);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -235,11 +236,19 @@ public class AudioSample {
 			// For each iteration, loop through the channels
 			for (int a = 0; a < this.getNumberOfChannels(); a++) {
 				
-				float eightBitSample = (float) eightBitByteArray[t];
+				byte eightBitSample = (byte) eightBitByteArray[t];
 				
-				float sixteenBitSample = ((eightBitSample / 256.0f) * 65536.0f); // unsigned 8-bit linear to signed 16-bit linear
+				//System.out.println(eightBitSample);
 				
-				int sample = (int) sixteenBitSample;
+				// TODO: What the hell? the format is "PCM_UNSIGNED" but I'm seeing negatives. Come back to this.
+				
+				// Convert from signed (-128 to 127) to unsigned (0 to 255).
+				// Most, if not all, 8-bit PCM samples are unsigned.
+				if(this.getEncoding().equals("PCM_SIGNED")) {
+					eightBitSample += 128;
+				}
+				
+				int sample = this.byteToInt8(eightBitSample);
 				
 				t++;
 
@@ -280,13 +289,13 @@ public class AudioSample {
 			// For each iteration, loop through the channels
 			for (int a = 0; a < this.getNumberOfChannels(); a++) {
 
-					int low = (int) eightBitByteArray[t];
+					byte low = eightBitByteArray[t];
 					t++;
 					
-					int high = (int) eightBitByteArray[t];
+					byte high = eightBitByteArray[t];
 					t++;
 					
-					int sample = (int) ((high<<8) | (low & 0xFF)); // (high << 8) + (low & 0x00ff);
+					int sample = this.bytesToInt16(high, low);
 
 					if (sample < this.sampleMin) {
 						this.sampleMin = sample;
@@ -302,14 +311,59 @@ public class AudioSample {
 		return toReturn;
 	}
 	
-	private static final void out(final String message) {
-		if(VERBOSE) {
-			if(message == null) {
-				out("----------------------------------------");
-			} else {
-				System.out.println("TRACE >> AudioSample >> " + message);
+	/**
+	 * @param eightBitByteArray
+	 * @return
+	 */
+	private final int[][] get24BitSampleArray(byte[] eightBitByteArray) {
+		
+		int chan = this.getNumberOfChannels();
+		
+		int len = eightBitByteArray.length / ( 3 * chan );
+		
+		int[][] toReturn = new int[chan][len];
+		
+		int index = 0;
+
+		// Loop through the byte array
+		for (int t = 0; t < eightBitByteArray.length;) {
+			// For each iteration, loop through the channels
+			for (int a = 0; a < this.getNumberOfChannels(); a++) {
+
+					byte low = eightBitByteArray[t];
+					t++;
+					
+					byte mid = eightBitByteArray[t];
+					t++;
+					
+					byte high = eightBitByteArray[t];
+					t++;
+					
+					int sample = bytesToInt24(low, mid, high, this.isBigEndian());
+
+					if (sample < this.sampleMin) {
+						this.sampleMin = sample;
+					} else if (sample > this.sampleMax) {
+						this.sampleMax = sample;
+					}
+					
+					toReturn[a][index] = sample;
 			}
-			
+			index++;
 		}
+
+		return toReturn;
+	}
+	
+	private final int bytesToInt24(byte low, byte mid, byte high, boolean bigEndian) {
+		return bigEndian ? ((low << 16) | ((mid & 0xFF) << 8) | (high & 0xFF)) : ((high << 16) | ((mid & 0xFF) << 8) | (low & 0xFF));
+	}
+
+	private final int bytesToInt16(byte highByte, byte lowByte) {
+		return (highByte << 8) | (lowByte & 0xFF);
+	}
+	
+	private final int byteToInt8(byte theByte) {
+		return theByte;
 	}
 }

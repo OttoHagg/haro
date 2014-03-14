@@ -57,7 +57,6 @@ public class ChannelCanvas extends Canvas {
 		int oldY = (int) (canvasHeight / 2);
 		int xIndex = 0;
 
-		// TODO - Understand why increment is low for 8-bit audio.
 		int increment = this.getIncrement(this.getXScaleFactor( canvasWidth ));
 		e.gc.setForeground(e.display.getSystemColor(WAVEFORM_COLOR));
 
@@ -70,10 +69,8 @@ public class ChannelCanvas extends Canvas {
 		}
 
 		for (; t < samples.length; t += increment) {
-			// TODO - Understand why scaleFactor is so large for 8-bit samples
 			// TODO - We can probably cache scaleFactor for performance improvement.
 			double scaleFactor = this.getYScaleFactor(canvasHeight);
-			//out("scaleFactor: " + scaleFactor);
 			double scaledSample = samples[t] * scaleFactor;
 			int y = (int) ((canvasHeight / 2) - (scaledSample));
 			e.gc.drawLine(oldX, oldY, xIndex, y);

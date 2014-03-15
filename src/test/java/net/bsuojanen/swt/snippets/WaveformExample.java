@@ -90,8 +90,7 @@ public class WaveformExample {
 						// Or, better yet, spawn a background thread to process.
 						shell.setText(title + " - " + file.getName()); // update the title
 					} catch (UnsupportedAudioFileException e) {
-						// AudioSample currently supports audio sampled at 16 bits. Lofi stuff, at 8 bits,
-						// shows up. But 24 is ubiquitous these days, too.
+						// Not all formats are supported yet (ex. 8-bit, a-law).
 						System.out.println(e.getMessage()); 
 						shell.setText(title + " - Error opening " + file.getName());
 					} catch(Exception e) {

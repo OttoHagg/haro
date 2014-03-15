@@ -209,8 +209,7 @@ public class AudioSample {
 	}
 
 	/**
-	 * This is for linear (PCM_UNSIGNED) 8-bit audio. The result is "loud" so it
-	 * probably needs some kind of normalization.
+	 * Support for linear (PCM) 8-bit audio.
 	 * 
 	 * @param eightBitByteArray
 	 * @return
@@ -238,15 +237,17 @@ public class AudioSample {
 				
 				byte eightBitSample = (byte) eightBitByteArray[t];
 				
-				//System.out.println(eightBitSample);
+				/*
+				 * Java Sound reports PCM_UNSIGNED for some 8-bit. Either the files are
+				 * reporting format incorrectly or, less likely, there's a bug in
+				 * Java Sound. Regardless, just treat all 8-bit as signed (for now).
+				 */
 				
-				// TODO: What the hell? the format is "PCM_UNSIGNED" but I'm seeing negatives. Come back to this.
-				
+				// Most, if not all, 8-bit PCM samples are (supposed to be) unsigned.
 				// Convert from signed (-128 to 127) to unsigned (0 to 255).
-				// Most, if not all, 8-bit PCM samples are unsigned.
-				if(this.getEncoding().equals("PCM_SIGNED")) {
-					eightBitSample += 128;
-				}
+				//if(this.getEncoding().equals("PCM_SIGNED")) {
+					eightBitSample += 128; // TODO: Come back to this...
+				//}
 				
 				int sample = this.byteToInt8(eightBitSample);
 				
@@ -267,9 +268,7 @@ public class AudioSample {
 	}
 	
 	/**
-	 * The assumption is 16-bit audio is linear. Every two 8-bit bytes form a 16-bit sample, and
-	 * there is one sample for each of the channels. A stereo sample, therefore, has a frame size
-	 * of 4 (bytes).
+	 * Support for 16-bit PCM audio.
 	 * 
 	 * @param eightBitByteArray
 	 * @return
@@ -312,6 +311,8 @@ public class AudioSample {
 	}
 	
 	/**
+	 * Support for 24-bit PCM audio.
+	 * 
 	 * @param eightBitByteArray
 	 * @return
 	 */

@@ -57,23 +57,23 @@ public class ChannelCanvas extends Canvas {
 		int oldY = (int) (canvasHeight / 2);
 		int xIndex = 0;
 
-		int increment = this.getIncrement(this.getXScaleFactor( canvasWidth ));
+		float increment = this.getIncrement(this.getXScaleFactor( (int) canvasWidth ));
 		e.gc.setForeground(e.display.getSystemColor(WAVEFORM_COLOR));
 
 		int t = 0;
 
 		for (t = 0; t < increment; t += increment) {
-			e.gc.drawLine(oldX, oldY, xIndex, oldY);
+			e.gc.drawLine((int)oldX, (int)oldY, (int)xIndex, (int)oldY);
 			xIndex++;
 			oldX = xIndex;
 		}
 
 		for (; t < samples.length; t += increment) {
 			// TODO - We can probably cache scaleFactor for performance improvement.
-			double scaleFactor = this.getYScaleFactor(canvasHeight);
+			double scaleFactor = this.getYScaleFactor((int)canvasHeight);
 			double scaledSample = samples[t] * scaleFactor;
 			int y = (int) ((canvasHeight / 2) - (scaledSample));
-			e.gc.drawLine(oldX, oldY, xIndex, y);
+			e.gc.drawLine((int)oldX, (int)oldY, (int)xIndex, (int)y);
 
 			xIndex++;
 			oldX = xIndex;
@@ -86,7 +86,6 @@ public class ChannelCanvas extends Canvas {
 	}
 	
 	public final double getYScaleFactor(int panelHeight) {
-		
 		return (panelHeight / (this.sample.getBiggestSample() * 2 * 1.2));
 	}
 	

@@ -27,8 +27,8 @@ public class AudioSample {
 	
 	private int[][] samplesContainer;
 	
-	private int sampleMax = 0;
-	private int sampleMin = 0;
+	private float sampleMax = 0;
+	private float sampleMin = 0;
 	private double biggestSample;
 	
 	public AudioSample(final File file) throws Exception {

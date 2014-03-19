@@ -189,6 +189,8 @@ public class AudioSample {
 			}
 			
 			if(this.getBitsPerSample() == 8) {
+				// Ensure the bytes are unsigned...
+				this.ensure8bitUnsigned(bytes);
 				this.samplesContainer = this.get8BitSampleArray(bytes);
 			} else if(this.getBitsPerSample() == 24) {
 				this.samplesContainer = this.get24BitSampleArray(bytes);
@@ -206,6 +208,69 @@ public class AudioSample {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	/**
+	 * Determines signedness of the bytes in the array. For reference:
+	 * signed = -128 to 127
+	 * unsigned = 0 to 255
+	 * 
+	 * I keep reading that 8-bit PCM audio is supposed to always be unsigned, but
+	 * that's just not the case. Sometimes, Java Sound reports PCM_UNSIGNED when
+	 * in fact the bytes are signed. Is it a bug in Java Sound? Were these samples
+	 * reporting the encoding incorrectly? I need to investigate further. But, for
+	 * now, I'm going to implement a check.
+	 * 
+	 * @param eightBitByteArray
+	 * @return
+	 */
+	private final boolean is8BitUnsigned(byte[] eightBitByteArray) {
+		
+		// Loop through the array of bytes
+		for (int t = 0; t < eightBitByteArray.length; t++) {
+			
+			// Get a byte.
+			byte eightBitSample = (byte) eightBitByteArray[t];
+			
+			int sample = this.byteToInt8(eightBitSample);
+			
+			// If it's less than zero, this indicated we're dealing with signed bytes.
+			// Return false now, and stop iterating.
+			if(sample < 0) {
+				return false;
+			}
+			
+			// If it's greater than 127, this indicates we're dealing with unsigned bytes.
+			// Return true now, and stop iterating.
+			if(sample > 127) {
+				return true;
+			}
+		}
+		
+		// Umm, assume true? The bytes are 0 to 127, so it must be?
+		return true;
+	}
+	
+	/**
+	 * Ensures the bytes in this array are unsigned.
+	 * 
+	 * @param eightBitByteArray
+	 * @return
+	 */
+	private final byte[] ensure8bitUnsigned(byte[] eightBitByteArray) {
+		
+		if(this.is8BitUnsigned(eightBitByteArray)) {
+			// We're good!
+			return eightBitByteArray;
+		}
+		
+		// TODO Change the encoding to be PCM_SIGNED? Does it matter?
+		
+		for (int t = 0; t < eightBitByteArray.length; t++) {
+			eightBitByteArray[t] += 128;
+		}
+		
+		return eightBitByteArray;
 	}
 
 	/**
@@ -236,18 +301,6 @@ public class AudioSample {
 			for (int a = 0; a < this.getNumberOfChannels(); a++) {
 				
 				byte eightBitSample = (byte) eightBitByteArray[t];
-				
-				/*
-				 * Java Sound reports PCM_UNSIGNED for some 8-bit. Either the files are
-				 * reporting format incorrectly or, less likely, there's a bug in
-				 * Java Sound. Regardless, just treat all 8-bit as signed (for now).
-				 */
-				
-				// Most, if not all, 8-bit PCM samples are (supposed to be) unsigned.
-				// Convert from signed (-128 to 127) to unsigned (0 to 255).
-				//if(this.getEncoding().equals("PCM_SIGNED")) {
-					eightBitSample += 128; // TODO: Come back to this...
-				//}
 				
 				int sample = this.byteToInt8(eightBitSample);
 				
